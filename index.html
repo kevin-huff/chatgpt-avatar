@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Speech Recognition</title>
+    <title>ChatGPT Avatar</title>
     <style>
       body {
         background-color: #1a1a1a;
@@ -95,7 +95,7 @@
 
           resultDiv.innerHTML = final_transcript;
 
-          if (final_transcript.includes("computer") && !recordingStarted) {
+          if (final_transcript.toLowerCase().includes("computer") && !recordingStarted) {
             recordingStarted = true;
             resultDiv.classList.add("recording"); // add recording class
           } else if (recordingStarted && final_transcript) {
