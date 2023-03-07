@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Speech Recognition</title>
+    <style>
+      body {
+        background-color: #1a1a1a;
+        color: #fff;
+      }
+
+      #result {
+        height: 200px;
+        width: 300px;
+        border: 1px solid black;
+        padding: 5px;
+      }
+      .recording {
+        background-color: #3cb371;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="result"></div>
+    <div id="log"></div>
+    <div id="response-list"></div>
+    <button id="startButton">Start Listening</button>
+    <button id="speakButton">Enable TTS</button>
+    <button id="stopButton" disabled>Stop TTS</button>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      const resultDiv = document.getElementById("result");
+      const logDiv = document.getElementById("log");
+      const responseList = document.getElementById("response-list");
+      const startButton = document.getElementById('startButton');
+      const stopButton = document.getElementById('stopButton');
+
+      // Function to update the log div with the transcription data
+      function updateLog(data) {
+        const listItem = document.createElement("li");
+        listItem.textContent = data;
+        logDiv.appendChild(listItem);
+      }
+      const speakButton = document.getElementById('speakButton');
+speakButton.addEventListener('click', function () {
+  const utterance = new SpeechSynthesisUtterance('TTS Online');
+  window.speechSynthesis.speak(utterance);
+});
+startButton.addEventListener('click', function() {
+        startRecording();
+      });
+    socket.on("transcript", (transcript) => {
+      console.log("Transcript:", transcript);
+      updateLog(transcript);
+    });
+    stopButton.addEventListener('click', function() {
+        stopTTS();
+      });
+      socket.on('response', function (data) {
+        if ('speechSynthesis' in window) {
+          responseList.innerHTML += `<li>${data}</li>`;
+          const utterance = new SpeechSynthesisUtterance(data);
+          window.speechSynthesis.speak(utterance);
+          stopButton.disabled = false;
+        } else {
+          console.log('no speechSynthesis');
+        }
+});
+
+
+
+      let recognition;
+      let recordingStarted = false;
+
+      function startRecording() {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = "en-US";
+
+        recognition.onresult = function (event) {
+          let interim_transcript = "";
+          let final_transcript = "";
+          let spokenPhrase = "";
+
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              final_transcript += event.results[i][0].transcript;
+            } else {
+              interim_transcript += event.results[i][0].transcript;
+            }
+          }
+
+          resultDiv.innerHTML = final_transcript;
+
+          if (final_transcript.includes("computer") && !recordingStarted) {
+            recordingStarted = true;
+            resultDiv.classList.add("recording"); // add recording class
+          } else if (recordingStarted && final_transcript) {
+            spokenPhrase = final_transcript.replace("computer", "").trim();
+
+            if (spokenPhrase) {
+              socket.emit("transcript", spokenPhrase);
+            }
+
+            recordingStarted = false;
+            resultDiv.classList.remove("recording"); // remove recording class
+          }
+
+          if (recordingStarted) {
+            if (spokenPhrase) {
+              socket.emit("transcript", spokenPhrase);
+            }
+          }
+        };
+
+        recognition.onend = function () {
+          if (recordingStarted) {
+            startRecording();
+          }
+        };
+
+        recognition.start();
+      }
+
+      socket.on("transcript", (transcript) => {
+        console.log("Transcript:", transcript);
+      });
+      function stopTTS() {
+        window.speechSynthesis.cancel();
+        stopButton.disabled = true;
+      }
+      startRecording();
+    </script>
+  </body>
+</html>
