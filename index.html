@@ -27,7 +27,6 @@
     <button id="speakButton">Enable TTS</button>
     <button id="stopButton" disabled>Stop TTS</button>
 
-
     <script src="/socket.io/socket.io.js"></script>
     <script>
       const socket = io();
@@ -35,8 +34,8 @@
       const resultDiv = document.getElementById("result");
       const logDiv = document.getElementById("log");
       const responseList = document.getElementById("response-list");
-      const startButton = document.getElementById('startButton');
-      const stopButton = document.getElementById('stopButton');
+      const startButton = document.getElementById("startButton");
+      const stopButton = document.getElementById("stopButton");
 
       // Function to update the log div with the transcription data
       function updateLog(data) {
@@ -44,33 +43,31 @@
         listItem.textContent = data;
         logDiv.appendChild(listItem);
       }
-      const speakButton = document.getElementById('speakButton');
-speakButton.addEventListener('click', function () {
-  const utterance = new SpeechSynthesisUtterance('TTS Online');
-  window.speechSynthesis.speak(utterance);
-});
-startButton.addEventListener('click', function() {
+      const speakButton = document.getElementById("speakButton");
+      speakButton.addEventListener("click", function () {
+        const utterance = new SpeechSynthesisUtterance("TTS Online");
+        window.speechSynthesis.speak(utterance);
+      });
+      startButton.addEventListener("click", function () {
         startRecording();
       });
-    socket.on("transcript", (transcript) => {
-      console.log("Transcript:", transcript);
-      updateLog(transcript);
-    });
-    stopButton.addEventListener('click', function() {
+      socket.on("transcript", (transcript) => {
+        console.log("Transcript:", transcript);
+        updateLog(transcript);
+      });
+      stopButton.addEventListener("click", function () {
         stopTTS();
       });
-      socket.on('response', function (data) {
-        if ('speechSynthesis' in window) {
+      socket.on("response", function (data) {
+        if ("speechSynthesis" in window) {
           responseList.innerHTML += `<li>${data}</li>`;
           const utterance = new SpeechSynthesisUtterance(data);
           window.speechSynthesis.speak(utterance);
           stopButton.disabled = false;
         } else {
-          console.log('no speechSynthesis');
+          console.log("no speechSynthesis");
         }
-});
-
-
+      });
 
       let recognition;
       let recordingStarted = false;
