@@ -1,10 +1,29 @@
-<!DOCTYPE html>
-<html  lang="en">
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ChatGPT Avatar</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <meta name="description" content="Chat with an AI-powered chatbot and listen to its responses.">
+    <meta name="keywords" content="chatbot, AI, NLP, natural language processing">
+    <meta name="author" content="Kevin Huff">
+    <meta property="og:title" content="ChatGPT Avatar">
+    <meta property="og:description" content="Chat with an AI-powered chatbot and listen to its responses.">
+    <meta property="og:image" content="/card.png">
+    <meta property="og:url" content="https://chatgpt-avatar.glitch.me/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ChatGPT Avatar">
+    <meta name="twitter:description" content="Chat with an AI-powered chatbot and listen to its responses.">
+    <meta name="twitter:image" content="/card.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
     <style>
       .recording {
         background-color: #3cb371;
@@ -13,31 +32,102 @@
       .chatbox {
           height: 500px;
           overflow-y: scroll;
+          background-color: #49525c;
       }
-      .chatbox .chat-right {
-          text-align: right;
-      }
-      .chatbox .chat-right .chat-bubble {
-          background-color: #F4A261;
-          color: #FFF;
-      }
-      .chatbox .chat-left .chat-bubble {
-          background-color: #E5E5EA;
-          color: #000;
-      }
+      .chat-message {
+  display: flex;
+  width: 100%;
+}
+
+.chat-right {
+  justify-content: flex-end;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.chat-left {
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.chat-bubble {
+  position: relative;
+  font-family: "SanFrancisco";
+  font-size: 1.25rem;
+  max-width: 75%;
+  padding: 0.5rem .875rem;
+  line-height: 1.25;
+  word-wrap: break-word;
+}
+
+.chat-right .chat-bubble {
+  background-color: #248bf5;
+  color: #fff;
+  border: 1px solid #248bf5;
+  border-radius: 0.25rem 0.25rem 0.25rem 0;
+}
+
+.chat-left .chat-bubble {
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #e5e5ea;
+  border-radius: 0.25rem 0.25rem 0 0.25rem;
+
+}
+
+.chat-bubble::before {
+  content: "";
+  position: absolute;
+  bottom: -15px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.chat-right .chat-bubble::before {
+  border-width: 16px 16px 0 0;
+  border-color: #248bf5 transparent transparent transparent;
+  right: 0;
+  transform: rotate(90deg);
+
+}
+
+.chat-left .chat-bubble::before {
+  border-width: 16px 0 0 16px;
+  border-color: #fff transparent transparent transparent;
+  left: 0;
+  transform: rotate(270deg);
+
+}
+.recording-icon {
+    position: relative;
+    bottom: 0;
+    left: 0;
+    display: none;
+}
     </style>
   </head>
   <body>
-    <div class="container py-5">
-      <h1>ChatGPT Avatar</h1>
-      <div class="alert alert-info" role="alert" id="triggerWordAlert">
-        The Trigger Word is: <span id="triggerWordSpan">computer</span>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <img src="logo.png" alt="Your Logo" width="30" height="30" class="d-inline-block align-text-top me-2" />
+          ChatGPT Avatar
+        </a>
+        <!-- Navbar content here -->
       </div>
+    </nav>
+    <div class="container py-5"> 
       <div class="row justify-content-center">
           <div class="col-lg-8">
               <!-- Chatbox -->
-              <div class="chatbox bg-light p-3">
+              <div class="chatbox p-3">
                   <!-- Chat messages -->
+                  <!-- Recording notification -->
+                  <div class="recording-icon d-none">
+                    <i class="bi bi-mic"></i>
+                  </div>
               </div>
               <!-- End of chatbox -->
               <!-- Chat input -->
@@ -84,11 +174,11 @@
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLabel">Welcome to My App</h5>
+              <h5 class="modal-title" id="exampleModalLabel">Welcome to ChatGPT Avatar</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <p>This is a cool app that lets you interact with a chatbot and listen to its responses.</p>
+              <p>This is a cool app that lets you interact with a chatbot and listen to its responses. It also provides straight tts response and the ability to tune the system prompt.</p>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -96,8 +186,15 @@
           </div>
         </div>
       </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/chatbot.js"></script>
+      <footer class="bg-dark py-3">
+        <div class="container text-center">
+          <p>Copyright © 2023 KevNetCloud LLC. All rights reserved.</p>
+          <a href="https://github.com/kevin-huff" target="_blank">GitHub</a>
+          </p>
+        </div>
+      </footer>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="/chatbot.js"></script>
   </body>
 </html>
