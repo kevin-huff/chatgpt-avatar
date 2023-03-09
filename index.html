@@ -1,138 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html  lang="en">
   <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ChatGPT Avatar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
     <style>
-      body {
-        background-color: #1a1a1a;
-        color: #fff;
-      }
-
-      #result {
-        height: 200px;
-        width: 300px;
-        border: 1px solid black;
-        padding: 5px;
-      }
       .recording {
         background-color: #3cb371;
+      }
+      /* Chatbox styles */
+      .chatbox {
+          height: 500px;
+          overflow-y: scroll;
+      }
+      .chatbox .chat-right {
+          text-align: right;
+      }
+      .chatbox .chat-right .chat-bubble {
+          background-color: #F4A261;
+          color: #FFF;
+      }
+      .chatbox .chat-left .chat-bubble {
+          background-color: #E5E5EA;
+          color: #000;
       }
     </style>
   </head>
   <body>
-    <div id="result"></div>
-    <div id="log"></div>
-    <div id="response-list"></div>
-    <button id="startButton">Start Listening</button>
-    <button id="speakButton">Enable TTS</button>
-    <button id="stopButton" disabled>Stop TTS</button>
-    <h1>
-      "Computer" is the trigger word.
-    </h1>
+    <div class="container py-5">
+      <h1>ChatGPT Avatar</h1>
+      <div class="alert alert-info" role="alert" id="triggerWordAlert">
+        The Trigger Word is: <span id="triggerWordSpan">computer</span>
+      </div>
+      <div class="row justify-content-center">
+          <div class="col-lg-8">
+              <!-- Chatbox -->
+              <div class="chatbox bg-light p-3">
+                  <!-- Chat messages -->
+              </div>
+              <!-- End of chatbox -->
+              <!-- Chat input -->
+              <div class="mt-3">
+                  <div class="input-group">
+                      <input type="text" class="form-control" id="userMessage" placeholder="Type your message...">
+                      <button class="btn btn-primary" id="sendMessageButton">Send</button>
+                  </div>
+              </div>
+              <div class="input-group">
+                <input type="text" class="form-control" placeholder="computer" id="triggerWordInput">
+                <button class="btn btn-primary" id="setTriggerWordButton">Set Trigger Word</button>
+            </div>
+              <div class="mt-3">
+                <button class="btn btn-primary" id="startButton">Start Listening</button>
+                <button class="btn btn-primary" id="speakButton">Enable TTS</button>
+            </div>
+              <!-- End of chat input -->
+              <audio id="audio-player" controls ></audio>
+          </div>
+      </div>
+  </div>
+      <!-- Modal dialog -->
+      <div class="modal fade" id="welcome-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Welcome to My App</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>This is a cool app that lets you interact with a chatbot and listen to its responses.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const socket = io();
-
-      const resultDiv = document.getElementById("result");
-      const logDiv = document.getElementById("log");
-      const responseList = document.getElementById("response-list");
-      const startButton = document.getElementById("startButton");
-      const stopButton = document.getElementById("stopButton");
-
-      // Function to update the log div with the transcription data
-      function updateLog(data) {
-        const listItem = document.createElement("li");
-        listItem.textContent = data;
-        logDiv.appendChild(listItem);
-      }
-      const speakButton = document.getElementById("speakButton");
-      speakButton.addEventListener("click", function () {
-        const utterance = new SpeechSynthesisUtterance("TTS Online");
-        window.speechSynthesis.speak(utterance);
-      });
-      startButton.addEventListener("click", function () {
-        startRecording();
-      });
-      socket.on("transcript", (transcript) => {
-        console.log("Transcript:", transcript);
-        updateLog(transcript);
-      });
-      stopButton.addEventListener("click", function () {
-        stopTTS();
-      });
-      socket.on("response", function (data) {
-        if ("speechSynthesis" in window) {
-          responseList.innerHTML += `<li>${data}</li>`;
-          const utterance = new SpeechSynthesisUtterance(data);
-          window.speechSynthesis.speak(utterance);
-          stopButton.disabled = false;
-        } else {
-          console.log("no speechSynthesis");
-        }
-      });
-
-      let recognition;
-      let recordingStarted = false;
-
-      function startRecording() {
-        recognition = new webkitSpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = "en-US";
-
-        recognition.onresult = function (event) {
-          let interim_transcript = "";
-          let final_transcript = "";
-          let spokenPhrase = "";
-
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-              final_transcript += event.results[i][0].transcript;
-            } else {
-              interim_transcript += event.results[i][0].transcript;
-            }
-          }
-
-          resultDiv.innerHTML = final_transcript;
-
-          if (final_transcript.toLowerCase().includes("computer") && !recordingStarted) {
-            recordingStarted = true;
-            resultDiv.classList.add("recording"); // add recording class
-          } else if (recordingStarted && final_transcript) {
-            spokenPhrase = final_transcript.replace("computer", "").trim();
-
-            if (spokenPhrase) {
-              socket.emit("transcript", spokenPhrase);
-            }
-
-            recordingStarted = false;
-            resultDiv.classList.remove("recording"); // remove recording class
-          }
-
-          if (recordingStarted) {
-            if (spokenPhrase) {
-              socket.emit("transcript", spokenPhrase);
-            }
-          }
-        };
-
-        recognition.onend = function () {
-          if (recordingStarted) {
-            startRecording();
-          }
-        };
-
-        recognition.start();
-      }
-
-      socket.on("transcript", (transcript) => {
-        console.log("Transcript:", transcript);
-      });
-      function stopTTS() {
-        window.speechSynthesis.cancel();
-        stopButton.disabled = true;
-      }
-      startRecording();
-    </script>
+    <script src="/chatbot.js"></script>
   </body>
 </html>

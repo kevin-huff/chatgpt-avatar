@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/kevin-huff/chatgpt-avatar#readme",
   "dependencies": {
+    "@google-cloud/text-to-speech": "^4.2.1",
     "censor-sensor": "^1.0.6",
     "deepspeech": "^0.9.3",
     "dotenv": "^16.0.3",

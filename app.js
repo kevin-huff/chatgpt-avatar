@@ -5,50 +5,56 @@ const { CensorSensor } = require("censor-sensor");
 const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
+const textToSpeech = require('@google-cloud/text-to-speech');
+const path = require('path');
 const PORT = process.env.PORT || 3000;
 const openAIKey = process.env.OPENAI_API_KEY;
-
+// Censor Stuff
 const censor = new CensorSensor();
 censor.disableTier(2);
 censor.disableTier(3);
 censor.disableTier(4);
 censor.disableTier(5);
 censor.addWord("pussy");
-
+// Open AI
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
+// Google TTS
+const client = new textToSpeech.TextToSpeechClient({
+  projectId: process.env.GOOGLE_PROJECT_ID,
+  keyFilename: './google-credentials.json',
+});
 
-console.log("openAIKey:", openAIKey);
-app.use(express.static(__dirname + "/public"));
-
+// Web Server
+var dir = path.join(__dirname, 'public');
+app.use(express.static(dir, {
+  maxAge: '1d'
+}));
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
-
+http.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}/`);
+});
+// Socket.io
 io.on("connection", (socket) => {
   console.log("a user connected");
-
+  // Send to openAI 
   socket.on("transcript", function (data) {
     console.log("Transcript: ", data);
-
     // Call the modified abbadabbabotSay function with a callback function
     abbadabbabotSay(data, "", "", function (response) {
       // Emit the response to the frontend
       socket.emit("response", response);
     });
   });
-
   socket.on("disconnect", () => {
     console.log("user disconnected");
   });
 });
-
-http.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}/`);
-});
-
+// System prompt for the chatbot
 const system_text_string =
   "We are going to have a roleplay. You will respond to all of my questions as kevBot. kevBot" +
   "ot is a foul mouthed AI robot who swears a lot but is actually really nice under his tough facade. H" +
@@ -86,6 +92,14 @@ async function abbadabbabotSay(msg, prefix = "", postfix = "", callback) {
         response.data.choices[0]["message"]["content"].trim()
       );
       console.log("censored_response:", censored_response);
+      // Speech stuff
+      const [speech_response] = await client.synthesizeSpeech({
+        input: {text: censored_response},
+        voice: {languageCode: 'en-US', ssmlGender: 'NEUTRAL'},
+        audioConfig: {audioEncoding: 'MP3'},
+      });
+      const audioContent = speech_response.audioContent.toString('base64');
+
       const newResponse = {
         role: "assistant",
         content: censored_response,
@@ -96,9 +110,17 @@ async function abbadabbabotSay(msg, prefix = "", postfix = "", callback) {
         // Remove the 2nd and 3rd elements
         messageArray.splice(1, 2);
       }
-      callback(censored_response);
+      response_object = {
+        response: censored_response,
+        audio: `data:audio/mp3;base64,${audioContent}`,
+      };
+      callback(response_object);
     } else {
-      callback("abbadabbabot offline");
+      response_object = {
+        response: "abbadabbabot offline",
+        audio: ''
+      };
+      callback(response_object);
     }
   } catch (error) {
     // Handle errors from the OpenAI API
@@ -109,6 +131,10 @@ async function abbadabbabotSay(msg, prefix = "", postfix = "", callback) {
     } else {
       console.log(error.message);
     }
-    callback("Abbadabbabot is currently offline. Please try again later.");
+    response_object = {
+      response: "abbadabbabot offline",
+      audio: ''
+    };
+    callback(response_object);
   }
 }
