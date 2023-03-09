@@ -1,6 +1,6 @@
 # ChatGPT Avatar
 
-This project is a Twitch chatbot that uses the OpenAI GPT-3 language model and Socket.io to provide a conversational AI experience for users. It also includes text-to-speech functionality using the SpeechSynthesis API.
+This project is a Twitch chatbot that uses the OpenAI GPT-3 language model and Socket.io to provide a conversational AI experience for users. It also includes text-to-speech functionality using the SpeechSynthesis API. And uses google-cloud/text-to-speech for TTS.
 
 ## Installation
 
@@ -9,6 +9,7 @@ This project is a Twitch chatbot that uses the OpenAI GPT-3 language model and S
 3. Run `npm install`
 4. Create a `.env` file in the root of the project directory and add your OpenAI API key as `OPENAI_API_KEY=your-key-here`
 5. Start the server with `npm start`
+6. Create a `google-credentials.json` file with a google cloud service account that can us google-cloud/text-to-speech. 
 
 ## Usage
 
@@ -28,6 +29,7 @@ This project uses the following dependencies:
 - `openai` for the GPT-3 language model
 - `socket.io` for real-time communication with the server
 - `censor-sensor` for profanity detection and filtering
+- `@google-cloud/text-to-speech` for tts
 
 ## Credits
 
@@ -38,5 +40,7 @@ This application uses the following technologies:
 - Socket.io
 - OpenAI
 - ChatGPT
+- Google Cloud Text-to-speech
+- Bootstrap5
 
 The majority of the code was generated through ChatGPT, an OpenAI-powered tool that allows users to easily create conversational agents using GPT-3.
