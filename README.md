@@ -2,7 +2,7 @@
 
 ![ChatGPT Avatar screenshot](/public/ChatGPT-Avatar.png)
 
-This project is a Twitch chatbot that uses the OpenAI GPT-3 language model and Socket.io to provide a conversational AI experience for users. It also includes text-to-speech functionality using the SpeechSynthesis API. And uses google-cloud/text-to-speech for TTS.
+This project is a Twitch chatbot that uses the OpenAI GPT-3 language model and Socket.io to provide a conversational AI experience for users. It also includes text-to-speech functionality using the SpeechSynthesis API. And uses google-cloud/text-to-speech for TTS. Now with socket.io rooms so multiple users can use the app a the same time. Each user has their own message history. New rooms are created everytime the page is loaded (or refreshed).
 
 ## Installation
 
