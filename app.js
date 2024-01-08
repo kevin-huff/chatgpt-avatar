@@ -49,20 +49,29 @@ http.listen(PORT, () => {
 });
 // Socket.io
 io.on("connection", (socket) => {
+  const room = 'room' + socket.id; // create a unique room for each user
+  socket.join(room); // join the user to their room
+
   console.log("a user connected");
+
+  // Initialize the system prompt and message array for this room
+  let system_text_string = "Initial system prompt";
+  let messageArray = [{ role: "system", content: system_text_string }];
+
   // Send to openAI 
   socket.on("transcript", function (data) {
     console.log("Transcript: ", data);
     // Call the modified abbadabbabotSay function with a callback function
     abbadabbabotSay(data, "", "", function (response) {
       // Emit the response to the frontend
-      socket.emit("response", response);
+      io.to(room).emit("response", response); // send the response to the specific room
     });
   });
+
   socket.on("setSystemPrompt", function(newSystemPrompt) {
     system_text_string = newSystemPrompt;
     messageArray = [{ role: "system", content: system_text_string }];
-  });  
+  }); 
   socket.on("tts", function(ttsPrompt) {
     ttsSay(ttsPrompt, "", "", function (response) {
       // Emit the response to the frontend
@@ -70,7 +79,7 @@ io.on("connection", (socket) => {
     });
   });  
   socket.on("disconnect", () => {
-    console.log("user disconnected");
+    console.log("user disconnected from room", room);
   });
 });
 
